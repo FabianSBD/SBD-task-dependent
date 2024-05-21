@@ -45,7 +45,7 @@ For generating posterior samples as described in our paper, you can access the c
 
 ## Pretrained models
 Checkpoints of the pretrained unconditional model and the task-dependent models for deblurring and ct-imaging can be found in this
-[Google drive](https://drive.google.com/drive/folders/1YIQzhNMF-5Mm24D_JcpMvuu-v7goz_w_)
+[Google drive](https://drive.google.com/drive/folders/1YIQzhNMF-5Mm24D_JcpMvuu-v7goz_w_). Download the checkpoints and place them in a folder named `checkpoints`.
 
 ## License
 
