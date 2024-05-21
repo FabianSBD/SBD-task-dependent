@@ -35,6 +35,7 @@ def download_and_extract_folder(url, extract_to, folder_in_zip, final_dest):
 # Specify files and folders to download
 files_to_download = [
     {'url': 'https://raw.githubusercontent.com/yang-song/score_sde_pytorch/main/sde_lib.py', 'save_as': 'sde_lib.py'},
+    {'url': 'https://raw.githubusercontent.com/yang-song/score_sde_pytorch/main/losses.py', 'save_as': 'losses.py'},
     {'url': 'https://raw.githubusercontent.com/yang-song/score_sde_pytorch/main/utils.py', 'save_as': 'utils.py'},
 ]
 
