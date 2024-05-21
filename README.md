@@ -44,7 +44,8 @@ The code that performs the training of a score function approximation is in the 
 For generating posterior samples as described in our paper, you can access the code in two separate notebooks: `sampling_deblurr.ipynb` for deblurring tasks and `sampling_ct.ipynb` for CT-imaging tasks. These notebooks contain the necessary code to generate posterior samples based on our approach.
 
 ## Pretrained models
-Checkpoints of the pretrained unconditional model and the task-dependent models for deblurring and ct-imaging can be found in the folder `checkpoints`.
+Checkpoints of the pretrained unconditional model and the task-dependent models for deblurring and ct-imaging can be found at
+[Google drive](https://drive.google.com/drive/folders/1YIQzhNMF-5Mm24D_JcpMvuu-v7goz_w_)
 
 ## License
 
