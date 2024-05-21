@@ -45,3 +45,13 @@ For generating posterior samples as described in our paper, you can access the c
 
 ## Pretrained models
 Checkpoints of the pretrained unconditional model and the task-dependent models for deblurring and ct-imaging can be found in the folder `checkpoints`.
+
+## License
+
+This project is dual-licensed under the MIT License and the Apache License 2.0.
+
+- The code authored for this project is licensed under the MIT License.
+- Portions of this codebase are derived from the score_sde_pytorch repository, which is licensed under the Apache License 2.0.
+
+Please see the `LICENSE` and `LICENSE_APACHE` files for details.
+
