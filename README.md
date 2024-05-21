@@ -19,6 +19,7 @@ The following files are included from the score_sde_pytorch repository:
 - https://github.com/yang-song/score_sde_pytorch/tree/main/models
 - https://github.com/yang-song/score_sde_pytorch/blob/main/utils.py
 - https://github.com/yang-song/score_sde_pytorch/blob/main/sde_lib.py
+-  https://github.com/yang-song/score_sde_pytorch/blob/main/losses.py
 
 score_sde_pytorch repository: https://github.com/yang-song/score_sde_pytorch
 
