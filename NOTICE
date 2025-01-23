@@ -1,5 +1,5 @@
 NOTICE
 
-This project references files from score_sde_pytorch, which is licensed under the Apache License, Version 2.0.
+This project references files from csgm, which is licensed under the MIT License.
 
-score_sde_pytorch can be found at: https://github.com/yang-song/score_sde_pytorch.
+csgm can be found at: https://github.com/alisiahkoohi/csgm.
