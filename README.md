@@ -12,28 +12,15 @@ The following command installs some of the most important python packages
 
 This project includes code from the GitHub repository score_sde_pytorch, which is licensed under the Apache License 2.0.
 
-#### Files Included
 
-The following files are included from the score_sde_pytorch repository:
-
-- https://github.com/yang-song/score_sde_pytorch/tree/main/models
-- https://github.com/yang-song/score_sde_pytorch/blob/main/utils.py
-- https://github.com/yang-song/score_sde_pytorch/blob/main/sde_lib.py
--  https://github.com/yang-song/score_sde_pytorch/blob/main/losses.py
-
-score_sde_pytorch repository: https://github.com/yang-song/score_sde_pytorch
-
-To obtain a copy of the necessary files, run
-
-`python setup.py`
 
 #### Modified Files
-The configs in the folder `custom_configs` are adaptations of the configs provided in the score_sde_pytorch repository. The original can be found at
+The configs in the folder `csgm` are slight adaptations of the folder csgm in the csgm repository. The original can be found at
 
-- https://github.com/yang-song/score_sde/tree/main/configs
+- https://github.com/alisiahkoohi/csgm
 
 
-The code from the score_sde_pytorch repository is licensed under the Apache License, Version 2.0. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
+The code from the csgm repository is licensed under the MIT License.
 
 ## Usage
 
@@ -50,10 +37,8 @@ Checkpoints of the pretrained unconditional model and the task-dependent models 
 
 ## License
 
-This project is dual-licensed under the MIT License and the Apache License 2.0.
+This project is licensed under the MIT License.
 
-- The code authored for this project is licensed under the MIT License.
-- Portions of this codebase are derived from the score_sde_pytorch repository, which is licensed under the Apache License 2.0.
 
-Please see the `LICENSE` and `LICENSE_APACHE` files for details.
+Please see the `LICENSE` file for details.
 
