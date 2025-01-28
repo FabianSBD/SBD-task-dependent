@@ -136,7 +136,7 @@ def our_loss_fn(model, x0, A, sig_obs, T, eps=1e-5):
 
 class LungDataset(Dataset):
 
-    def __init__(self, root_dir = "/fabian/work/Project CT Diffusion/csgm/csgm-main/lungdata", train = True, transform=None):
+    def __init__(self, root_dir = "/lungdata", train = True, transform=None):
         """
         Arguments:
             csv_file (string): Path to the csv file with annotations.
