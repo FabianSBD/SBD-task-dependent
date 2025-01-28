@@ -12,7 +12,10 @@ The following command installs some of the most important python packages
 
 This project includes code from the GitHub repository score_sde_pytorch, which is licensed under the Apache License 2.0.
 
+##LIDC-IRI Dataset
 
+This project requires the LIDC-IRI Dataset and in order for the dataloader to work, need the downloaded images in .pt format in the folder specified in the code.
+The dataset can be found at https://www.cancerimagingarchive.net/collection/lidc-idri/.
 
 #### Modified Files
 The configs in the folder `csgm` are slight adaptations of the folder csgm in the csgm repository. The original can be found at
