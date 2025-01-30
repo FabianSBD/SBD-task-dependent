@@ -1,6 +1,5 @@
 # SBD-task-dependent
-This code corresponds to the preprint **"Reducing the cost of posterior sampling in linear
-inverse problems via task-dependent score learning"**.
+This code corresponds to the preprint **"Scalable diffusion posterior sampling in infinite-dimensional inverse problems"**.
 ## Setup
 
 ### Dependencies
@@ -32,7 +31,7 @@ The code that performs the training of a score function approximation is in the 
 
 
 ### Posterior Sampling
-For generating posterior samples as described in our paper, you can access the code in two separate notebooks: `sampling_deblurr.ipynb` for deblurring tasks and `sampling_ct.ipynb` for CT-imaging tasks. These notebooks contain the necessary code to generate posterior samples based on our approach.
+For generating posterior samples as described in our paper, you can access the code separate notebooks: `sampling_ct-32.ipynb`, `sampling_ct-64.ipynb`, `sampling_ct-128.ipynb`. These notebooks contain the necessary code to generate posterior samples based on our approach.
 
 ## Pretrained models
 Checkpoints of the pretrained unconditional model and the task-dependent models for ct-imaging example can be found in this
