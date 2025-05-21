@@ -12,18 +12,25 @@ from skimage.transform import radon
 def build_blurring_operator(size, sig_blurr):
     # builds radon transform operator into matrix of suitable shape
     # args:
-    # im_size: pixels of quadratic image
+    # size: pixels of quadratic image
     # sig_blurr: standard deviation of gaussian blurring
+    try:
+        A = torch.load("Blurr_forward" + str(size) + "sig:" + str(sig_blurr) +".pt")
+        return A
+         
+    except:
+        A = np.zeros((size**2, size**2))
     
-    A = np.zeros((size**2, size**2))
+        for i in range(size):
+            for j in range(size):
+                x = np.zeros((size, size))
+                x[i, j] = 1
+                y = gaussian_filter(x, sigma=sig_blurr)
+                A[: , i*size + j] = y.flatten() 
+        A = torch.from_numpy(A).float()
+        torch.save(A, "Blurr_forward" + str(size) + "sig:" + str(sig_blurr) +".pt", pickle_protocol=4)
+        return A
 
-    for i in range(size):
-        for j in range(size):
-            x = np.zeros((size, size))
-            x[i, j] = 1
-            y = gaussian_filter(x, sigma=sig_blurr)
-            A[: , i*size + j] = y.flatten()    
-    return torch.from_numpy(A).float()
 
 def build_CT_operator(size, angles, max_angle):
    # builds radon transform operator into matrix of suitable shape
@@ -39,10 +46,9 @@ def build_CT_operator(size, angles, max_angle):
             theta = np.linspace(0., max_angle, angles, endpoint=False)
             y = radon(x, theta=theta)
             A[: , i*size + j] = y.flatten()   
-    _, normaliz, _ = np.linalg.svd(A)
-    A = A / normaliz[0]
+    A = A / size
     #for large dimensional problems save the forward map to avoid recomputation
-    torch.save(A, "CT_forward" + str(size) + "angles" + str(angles) + "max_angle" + str(max_angle) +".pt")
+    torch.save(A, "CT_forward" + str(size) + "angles" + str(angles) + "max_angle" + str(max_angle) +".pt", pickle_protocol=4)
     return A
 
 
@@ -55,24 +61,59 @@ def uncond_loss_fn(model, x0, T, eps=1e-5):
 #    x0:      A mini-batch of training data.    
 #    T:       final time of forward SDE
 #    eps:     A tolerance value for numerical stability.
-    
-    #Force the same time for all the batch; TODO allow different time
-    #random_t = torch.rand(x0.shape[0], device=x0.device) * (T - eps) + eps
-    random_t = torch.rand(x0.shape[0]) * (T - eps) + eps
+    random_t = torch.rand(x0.shape[0], device = x0.device) * (T - eps) + eps
     
     z = torch.randn_like(x0)
-    z = z.reshape((z.shape[0], z.shape[1], z.shape[2] * z.shape[3]))
+    int_beta = random_t * 0.05 + (10-0.05) * random_t**2 / (2*T)
 
-    std = torch.sqrt(1 - torch.exp(-random_t))
-    noise = z * std[:, None, None]
+    std = torch.sqrt(1 - torch.exp(-int_beta))
+    noise = z * std[:, None, None, None]
 
-    x_t = torch.exp(-random_t/2)[:, None, None, None] * x0 + noise.reshape(x0.shape)
+    x_t = torch.exp(-int_beta/2)[:, None, None, None] * x0 + noise
     score = model(x_t, random_t)
 
-    loss = torch.mean(torch.sum((score * std[:, None, None, None].to(score.device) + z.reshape(x0.shape).to(score.device))**2, dim = (1, 2, 3)))
-    return loss, random_t.to(loss.device)
+    loss = torch.mean(torch.sum((score + z.reshape(x0.shape).to(score.device))**2, dim = (1, 2, 3)))
+    return loss
 
-def our_loss_fn(model, x0, A, Gam, T, eps=1e-5):
+def cond_loss_fn(model, x0, A, sig_obs, T, d3 = False, eps=1e-5):
+#The loss function for training score-based generative models.
+#   Args:
+#    
+#    model:   A PyTorch model instance that represents a 
+#             time-dependent score-based model.
+#    x0:      A mini-batch of training data.    
+#    T:       final time of forward SDE
+#    eps:     A tolerance value for numerical stability.
+    origshape = x0.shape
+    random_t = torch.rand(x0.shape[0], device = x0.device) * (T - eps) + eps
+    
+    z = torch.randn_like(x0)
+    x0 = x0.permute(1, 2, 0, 3)
+    prev_shape = x0.shape
+    x0 = x0.reshape((-1, x0.shape[2] * x0.shape[3]))
+    y = A @ x0
+    y = y.reshape(prev_shape)
+    y = y.permute(2, 0, 1, 3)
+
+    x0 = x0.reshape((origshape[1], origshape[2], origshape[0], origshape[3]))
+    x0 = x0.permute(2, 0, 1, 3)
+    y = y + sig_obs * torch.randn_like(y)
+
+
+    int_beta = random_t * 0.05 + (10-0.05) * random_t**2 / (2*T)
+    
+    std = torch.sqrt(1 - torch.exp(-int_beta))
+    noise = z * std[:, None, None, None]
+
+    x_t = torch.exp(-int_beta/2)[:, None, None, None] * x0 + noise#.reshape(x0.shape)
+    if d3:
+        y = y.reshape(x0.shape)
+    score = model(x_t, y, random_t)
+
+    loss = torch.mean(torch.sum((score + z.reshape(x0.shape).to(score.device))**2, dim = (1, 2, 3)))
+    return loss
+
+def our_loss_fn(model, x0, A, sig_obs, T, eps=1e-5):
 #The loss function for training score-based generative models.
 #   Args:
 #    
@@ -80,26 +121,71 @@ def our_loss_fn(model, x0, A, Gam, T, eps=1e-5):
 #             time-dependent score-based model.
 #    x0:      A mini-batch of training data.    
 #    A:       Forward operator
-#    Gam:     observational noise
+#    sig_obs:     observational noise; scalar
 #    T:       final time of forward SDE
 #    eps:     A tolerance value for numerical stability.
+    origshape = x0.shape
+    x00 = x0
+    random_t = torch.rand(x0.shape[0], device = A.device) * (T - eps) + eps
+    bmax = 10
+    bmin = 0.05
     
-    #Force the same time for all the batch; TODO allow different time
-    random_t = torch.rand(1, device = A.device) * (T - eps) + eps
+    int_beta = random_t * bmin + (bmax-bmin) * random_t**2 / (2*T) 
+    scale = torch.clamp((torch.exp(int_beta) - 1), max = 1.)
 
-    z = torch.randn_like(x0).to(A.device)
-    z = z.reshape((z.shape[0], z.shape[1], z.shape[2] * z.shape[3]))
+    x0 = x0.permute(0, 3, 1, 2)
+    x0 = x0.reshape(x0.shape[0], x0.shape[1], -1)
+    noise = (1 / torch.sqrt(torch.exp(int_beta) - 1))[:, None, None] * torch.randn_like(x0).to(A.device) 
+    noise = noise + torch.randn(size = (x0.shape[0], x0.shape[1], A.shape[0]), device = A.device) @ A / sig_obs
+    # transforming where to train accordingly ##
 
-    d = A.shape[1]
-    sig_post2_inv = 1 / (torch.exp(random_t) - 1) * torch.eye(d, device = A.device) + A.T @ torch.linalg.inv(Gam).to(A.device) @ A
-    std_inv = torch.linalg.cholesky(sig_post2_inv).float()
+    
+    x_t_dash = x0.to(A.device) / (torch.exp(int_beta) - 1)[:, None, None] + x0.to(A.device) @ A.T @ A / sig_obs**2
+    x_t_dash = x_t_dash + noise
 
-    ## transforming where to train accordingly ##
-    x_t_dash = x0.reshape(z.shape).to(A.device) @ sig_post2_inv.float() + z @ std_inv
-    x_t_dash = x_t_dash.reshape(x0.shape)
-    score = model(x_t_dash, random_t.repeat(x0.shape[0]))
-    target = x0 
+    x_t_dash = x_t_dash.permute(0, 2, 1)
+    x_t_dash = x_t_dash.reshape(origshape).to(x0.device) 
 
+    x_t_dash = x_t_dash / (torch.std(x_t_dash, dim = (1, 2, 3), keepdim = True) + 1)
+    score = model(x_t_dash, random_t)
+
+    target = x00
     loss = torch.mean(torch.sum((score - target.to(score.device))**2, dim = (1, 2, 3))) 
-    return loss, random_t.to(loss.device)
+    return loss
+
+
+class LungDataset(Dataset):
+
+    def __init__(self, root_dir = "/fabian/work/Project CT Diffusion/csgm/csgm-main/lungdata", train = True, transform=None):
+        """
+        Arguments:
+            csv_file (string): Path to the csv file with annotations.
+            root_dir (string): Directory with all the images.
+            transform (callable, optional): Optional transform to be applied
+                on a sample.
+        """
+        self.transform = transform
+        self.train = train
+        if train:
+            self.root_dir = os.path.join(root_dir, 'train512')
+        else:
+            self.root_dir = os.path.join(root_dir, 'test512')
+        self.file_names = os.listdir(self.root_dir)
+
+    def __len__(self):
+        return len(self.file_names)
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+
+        img_name = os.path.join(self.root_dir,
+                                self.file_names[idx])
+        image = torch.load(img_name) 
+
+        if self.transform:
+            sample = self.transform(image)
+
+        return (sample - torch.min(sample)) / (torch.max(sample) - torch.min(sample))
+
 
